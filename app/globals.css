@@ -1,59 +1,218 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0f1117;
-  --foreground: #e8eaf0;
-  --accent: #4ade80;
-  --accent-dim: #22c55e;
-  --surface: #1a1d27;
-  --surface-2: #242736;
-  --border: #2e3244;
-  --muted: #6b7280;
+  /* ── Deep Navy Palette ── */
+  --background:  #060b18;
+  --bg-deep:     #030710;
+  --foreground:  #e2e8f8;
+  --foreground-dim: #a8b4d0;
+
+  /* Surfaces */
+  --surface:     #0d1428;
+  --surface-2:   #111e38;
+  --surface-3:   #162447;
+  --surface-glass: rgba(13, 20, 40, 0.7);
+
+  /* Accent – electric blue */
+  --accent:      #3d6bff;
+  --accent-lt:   #5b84ff;
+  --accent-dim:  #1a3a99;
+  --accent-glow: rgba(61, 107, 255, 0.35);
+
+  /* Accent secondary – cyan */
+  --cyan:        #22d3ee;
+  --cyan-dim:    rgba(34, 211, 238, 0.15);
+
+  /* Border */
+  --border:      #1c2d52;
+  --border-lt:   #263d6b;
+
+  /* Text */
+  --muted:       #4a5f8a;
+  --muted-lt:    #6b80aa;
+
+  /* Status */
+  --success:     #22c55e;
+  --warning:     #eab308;
+  --error:       #ef4444;
+
+  /* Role colours */
+  --role-owner:   #fbbf24;
+  --role-admin:   #3d6bff;
+  --role-tech:    #06b6d4;
+  --role-mod:     #8b5cf6;
+  --role-player:  #4a5f8a;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-accent: var(--accent);
-  --color-accent-dim: var(--accent-dim);
-  --color-surface: var(--surface);
-  --color-surface-2: var(--surface-2);
-  --color-border: var(--border);
-  --color-muted: var(--muted);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background:    var(--background);
+  --color-foreground:    var(--foreground);
+  --color-accent:        var(--accent);
+  --color-accent-lt:     var(--accent-lt);
+  --color-surface:       var(--surface);
+  --color-surface-2:     var(--surface-2);
+  --color-border:        var(--border);
+  --color-muted:         var(--muted);
+  --font-sans:           var(--font-geist-sans);
+  --font-mono:           var(--font-geist-mono);
 }
 
-* {
-  box-sizing: border-box;
-}
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
+/* ── Animated deep background ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 10%, rgba(61, 107, 255, 0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 80%, rgba(34, 211, 238, 0.05) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 30% at 60% 30%, rgba(91, 132, 255, 0.04) 0%, transparent 50%),
+    var(--bg-deep);
+  pointer-events: none;
+}
+
+/* Subtle hex grid pattern */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  opacity: 0.025;
+  background-image:
+    linear-gradient(rgba(61,107,255,0.6) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(61,107,255,0.6) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+}
+
+/* Scanline overlay */
+.scanlines {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(6, 11, 24, 0.03) 3px,
+    rgba(6, 11, 24, 0.03) 4px
+  );
+}
+
+/* ── Selection ── */
 ::selection {
-  background: #4ade8040;
-  color: #4ade80;
+  background: rgba(61,107,255,0.3);
+  color: #fff;
 }
 
-::-webkit-scrollbar {
-  width: 6px;
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--background); }
+::-webkit-scrollbar-thumb { background: var(--border-lt); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
+
+/* ── Focus ring ── */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
-::-webkit-scrollbar-track {
-  background: var(--background);
+
+/* ── Glow utilities ── */
+.glow-blue  { box-shadow: 0 0 20px var(--accent-glow), 0 0 60px rgba(61,107,255,0.1); }
+.glow-cyan  { box-shadow: 0 0 20px rgba(34,211,238,0.25); }
+.text-glow  { text-shadow: 0 0 24px var(--accent-glow); }
+
+/* ── Glass card ── */
+.glass {
+  background: var(--surface-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
 }
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
+
+/* ── Gradient text ── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent-lt) 0%, var(--cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: var(--muted);
+
+/* ── Pulse dot ── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
 }
+.pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+/* ── Float ── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+.float { animation: float 4s ease-in-out infinite; }
+
+/* ── Rotate slow ── */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin-slow { animation: spin-slow 30s linear infinite; }
+.spin-slow-rev { animation: spin-slow 40s linear infinite reverse; }
+
+/* ── Shimmer ── */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+  background-size: 200% auto;
+  animation: shimmer 3s linear infinite;
+}
+
+/* ── Energy link draw ── */
+@keyframes draw-line {
+  from { stroke-dashoffset: 300; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* ── Orbit ring ── */
+@keyframes orbit-pulse {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.35; }
+}
+.orbit-ring { animation: orbit-pulse 3s ease-in-out infinite; }
+
+/* ── Accordion reveal ── */
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-down { animation: slide-down 0.25s ease-out forwards; }
+
+/* ── Btn glow pulse ── */
+@keyframes btn-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(61,107,255,0.6), 0 0 12px rgba(61,107,255,0.2); }
+  50% { box-shadow: 0 0 0 6px rgba(61,107,255,0), 0 0 24px rgba(61,107,255,0.4); }
+}
+.btn-glow { animation: btn-glow 2.5s ease-in-out infinite; }
