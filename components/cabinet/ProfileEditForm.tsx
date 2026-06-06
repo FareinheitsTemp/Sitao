@@ -4,99 +4,113 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
-const editSchema = z.object({
+const schema = z.object({
   display_name: z.string().max(32, 'Максимум 32 символи').optional().or(z.literal('')),
-  avatar_url:   z.string().url('Невірний URL').optional().or(z.literal('')),
+  minecraft_name: z.string().max(16, 'Максимум 16 символів').optional().or(z.literal('')),
 })
 
-type EditForm = z.infer<typeof editSchema>
+type FormData = z.infer<typeof schema>
 
-interface Profile {
+type Profile = {
   id: string
   display_name: string | null
-  avatar_url: string | null
-  nickname: string
+  minecraft_name: string | null
 }
 
 export function ProfileEditForm({ profile }: { profile: Profile }) {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const supabase = createClient()
 
-  const { register, handleSubmit, formState: { errors, isDirty } } = useForm<EditForm>({
-    resolver: zodResolver(editSchema),
+  const { register, handleSubmit, formState: { errors, isDirty } } = useForm<FormData>({
+    resolver: zodResolver(schema),
     defaultValues: {
       display_name: profile.display_name ?? '',
-      avatar_url:   profile.avatar_url ?? '',
+      minecraft_name: profile.minecraft_name ?? '',
     },
   })
 
-  const onSubmit = async (data: EditForm) => {
+  const onSubmit = async (data: FormData) => {
     setLoading(true)
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          display_name: data.display_name || null,
-          avatar_url:   data.avatar_url || null,
-        })
-        .eq('id', profile.id)
+    const supabase = createClient()
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        display_name: data.display_name || null,
+        minecraft_name: data.minecraft_name || null,
+      })
+      .eq('id', profile.id)
 
-      if (error) { toast.error('Помилка збереження'); return }
+    if (error) {
+      toast.error('Помилка збереження: ' + error.message)
+    } else {
       toast.success('Профіль оновлено!')
-    } catch {
-      toast.error('Щось пішло не так')
-    } finally {
-      setLoading(false)
+      router.refresh()
     }
+    setLoading(false)
   }
 
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6">
-      <h3 className="text-base font-semibold text-[var(--foreground)] mb-5">Редагувати профіль</h3>
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.15, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6"
+    >
+      <h2 className="text-base font-bold text-[var(--foreground)] mb-5 flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+        </svg>
+        Редагувати профіль
+      </h2>
+
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-[var(--foreground)] mb-1.5">Відображуване ім'я</label>
+          <label className="block text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-2">Відображуване ім&apos;я</label>
           <input
             type="text"
             {...register('display_name')}
-            className="w-full px-4 py-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border)] text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)] transition-colors"
-            placeholder={profile.nickname}
+            className="w-full px-4 py-2.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)] transition-colors text-sm"
+            placeholder="Твоє ім'я на сайті"
           />
           {errors.display_name && <p className="mt-1.5 text-xs text-red-400">{errors.display_name.message}</p>}
+          <p className="mt-1.5 text-xs text-[var(--muted)]">Показується замість нікнейму скрізь на сайті</p>
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[var(--foreground)] mb-1.5">URL аватара</label>
+          <label className="block text-xs font-medium text-[var(--muted)] uppercase tracking-wide mb-2">Нік у Minecraft</label>
           <input
-            type="url"
-            {...register('avatar_url')}
-            className="w-full px-4 py-2.5 rounded-lg bg-[var(--surface-2)] border border-[var(--border)] text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)] transition-colors"
-            placeholder="https://example.com/avatar.png"
+            type="text"
+            {...register('minecraft_name')}
+            className="w-full px-4 py-2.5 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] text-[var(--foreground)] placeholder:text-[var(--muted)] focus:outline-none focus:border-[var(--accent)] transition-colors text-sm"
+            placeholder="Steve"
           />
-          {errors.avatar_url && <p className="mt-1.5 text-xs text-red-400">{errors.avatar_url.message}</p>}
+          {errors.minecraft_name && <p className="mt-1.5 text-xs text-red-400">{errors.minecraft_name.message}</p>}
+          <p className="mt-1.5 text-xs text-[var(--muted)]">Для прив&apos;язки до ігрового акаунту</p>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading || !isDirty}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] text-[#0f1117] font-semibold text-sm rounded-lg hover:bg-[var(--accent-dim)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {loading
-            ? <span className="w-4 h-4 border-2 border-[#0f1117]/30 border-t-[#0f1117] rounded-full animate-spin" />
-            : (
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                <polyline points="17 21 17 13 7 13 7 21"/>
-                <polyline points="7 3 7 8 15 8"/>
+        <div className="pt-2">
+          <button
+            type="submit"
+            disabled={loading || !isDirty}
+            className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] text-[#0f1117] text-sm font-bold rounded-xl hover:bg-[#22c55e] disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-95"
+          >
+            {loading ? (
+              <span className="w-4 h-4 border-2 border-[#0f1117]/30 border-t-[#0f1117] rounded-full animate-spin" />
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
               </svg>
-            )
-          }
-          {loading ? 'Зберігаємо...' : 'Зберегти'}
-        </button>
+            )}
+            {loading ? 'Зберігаємо...' : 'Зберегти зміни'}
+          </button>
+        </div>
       </form>
-    </div>
+    </motion.div>
   )
 }

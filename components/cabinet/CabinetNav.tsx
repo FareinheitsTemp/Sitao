@@ -1,12 +1,21 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { useState } from 'react'
 
-const navItems = [
+const ROLE_META: Record<string, { label: string; color: string; bg: string }> = {
+  owner:   { label: 'Owner',   color: 'text-red-400',    bg: 'bg-red-400/10 border-red-400/30' },
+  admin:   { label: 'Admin',   color: 'text-orange-400', bg: 'bg-orange-400/10 border-orange-400/30' },
+  premium: { label: 'Premium', color: 'text-purple-400', bg: 'bg-purple-400/10 border-purple-400/30' },
+  vip:     { label: 'VIP',     color: 'text-yellow-400', bg: 'bg-yellow-400/10 border-yellow-400/30' },
+  player:  { label: 'Player',  color: 'text-[var(--muted)]', bg: 'bg-[var(--surface-2)] border-[var(--border)]' },
+}
+
+const NAV_ITEMS = [
   {
     href: '/cabinet/profile',
     label: 'Профіль',
@@ -32,7 +41,7 @@ const navItems = [
     label: 'Донати',
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
       </svg>
     ),
   },
@@ -49,15 +58,7 @@ const navItems = [
   },
 ]
 
-const roleLabels: Record<string, { label: string; color: string }> = {
-  owner:   { label: 'Owner',   color: 'text-red-400' },
-  admin:   { label: 'Admin',   color: 'text-orange-400' },
-  premium: { label: 'Premium', color: 'text-purple-400' },
-  vip:     { label: 'VIP',     color: 'text-yellow-400' },
-  player:  { label: 'Player',  color: 'text-[var(--muted)]' },
-}
-
-interface Profile {
+type Profile = {
   id: string
   nickname: string
   display_name: string | null
@@ -69,25 +70,33 @@ interface Profile {
 export function CabinetNav({ profile }: { profile: Profile }) {
   const pathname = usePathname()
   const router = useRouter()
-  const supabase = createClient()
-  const role = roleLabels[profile.role] ?? roleLabels.player
+  const [loggingOut, setLoggingOut] = useState(false)
+  const role = ROLE_META[profile.role] ?? ROLE_META.player
 
   const handleLogout = async () => {
+    setLoggingOut(true)
+    const supabase = createClient()
     await supabase.auth.signOut()
-    toast.success('Ти вийшов з акаунту')
+    toast.success('Вийшли з акаунту')
     router.push('/')
     router.refresh()
   }
 
   return (
-    <aside className="w-full md:w-56 flex-shrink-0">
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 mb-4">
+    <motion.aside
+      initial={{ opacity: 0, x: -16 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full md:w-64 shrink-0"
+    >
+      {/* Profile card */}
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 mb-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center flex-shrink-0 overflow-hidden">
+          <div className="relative w-12 h-12 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center overflow-hidden shrink-0">
             {profile.avatar_url
-              ? <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+              ? <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
               : (
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
                 </svg>
@@ -95,45 +104,63 @@ export function CabinetNav({ profile }: { profile: Profile }) {
             }
           </div>
           <div className="min-w-0">
-            <p className="font-semibold text-[var(--foreground)] text-sm truncate">
+            <p className="font-bold text-[var(--foreground)] text-sm truncate">
               {profile.display_name || profile.nickname}
             </p>
-            <p className={`text-xs font-medium ${role.color}`}>{role.label}</p>
+            <p className="text-[var(--muted)] text-xs truncate">@{profile.nickname}</p>
           </div>
+        </div>
+        <div className="mt-3">
+          <span className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-lg border ${role.bg} ${role.color}`}>
+            {role.label}
+          </span>
         </div>
       </div>
 
+      {/* Navigation */}
       <nav className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl overflow-hidden">
-        {navItems.map(({ href, label, icon }) => {
-          const active = pathname === href
+        {NAV_ITEMS.map(({ href, label, icon }) => {
+          const active = pathname === href || pathname.startsWith(href + '/')
           return (
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 px-4 py-3 text-sm transition-colors border-b border-[var(--border)] last:border-0 ${
+              className={`relative flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors duration-150 group ${
                 active
-                  ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-medium'
+                  ? 'text-[#4ade80] bg-[#4ade80]/5'
                   : 'text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-2)]'
               }`}
             >
-              {icon}
+              {active && (
+                <motion.span
+                  layoutId="cabinet-nav-indicator"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-[#4ade80] rounded-full"
+                  transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                />
+              )}
+              <span className={active ? 'text-[#4ade80]' : 'text-[var(--muted)] group-hover:text-[var(--foreground)]'}>
+                {icon}
+              </span>
               {label}
             </Link>
           )
         })}
 
+        <div className="border-t border-[var(--border)] mx-3" />
+
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+          disabled={loggingOut}
+          className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-[var(--muted)] hover:text-red-400 hover:bg-red-400/5 transition-colors duration-150 disabled:opacity-50"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
             <polyline points="16 17 21 12 16 7"/>
             <line x1="21" y1="12" x2="9" y2="12"/>
           </svg>
-          Вийти
+          {loggingOut ? 'Виходимо...' : 'Вийти'}
         </button>
       </nav>
-    </aside>
+    </motion.aside>
   )
 }
