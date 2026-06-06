@@ -5,7 +5,7 @@ import { useRef } from "react";
 import { fadeInUp, staggerContainer } from "@/constants/motion";
 
 const STATS = [
-  { label: "Онлайн зараз",       value: "120+",   sub: "гравців на сервері",     color: "#4ade80" },
+  { label: "Онлайн зараз",       value: "120+",   sub: "гравців на сервері",     color: "#3d6bff" },
   { label: "Всього гравців",      value: "5 000+", sub: "за весь час",            color: "#60a5fa" },
   { label: "Днів роботи",        value: "730+",   sub: "стабільного аптайму",    color: "#c084fc" },
   { label: "Ивентів проведено",  value: "150+",   sub: "турнірів та подій",      color: "#fbbf24" },
@@ -82,7 +82,7 @@ export default function RatingsChart() {
                     transition={{ duration: 0.5, delay: i * 0.06, ease: [0.16, 1, 0.3, 1] }}
                     className="w-full rounded-t-lg"
                     style={{
-                      background: `linear-gradient(to top, #22c55e, #4ade80)`,
+                      background: `linear-gradient(to top, #1a3a99, #3d6bff)`,
                       opacity: 0.55 + (d.value / MAX_VAL) * 0.45,
                     }}
                   />

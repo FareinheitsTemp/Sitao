@@ -21,7 +21,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
           <div>
             <div className="font-black text-base mb-3 tracking-tight">
-              <span className="text-[#4ade80]">SITAO</span>
+              <span className="text-[#3d6bff]">SITAO</span>
               <span className="text-[var(--muted)]">.fun</span>
             </div>
             <p className="text-sm text-[var(--muted)] leading-relaxed">
@@ -57,7 +57,7 @@ export default function Footer() {
                 <IconBrandTiktok size={15} /> TikTok
               </a>
               <a href={dynmap} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[#4ade80] transition-colors">
+                className="flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[#3d6bff] transition-colors">
                 <IconMap size={15} /> Dynmap карта
               </a>
             </div>

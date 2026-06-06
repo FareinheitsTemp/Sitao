@@ -27,7 +27,7 @@ export default function SplashScreen() {
             className="flex flex-col items-center gap-5"
           >
             <div className="text-3xl sm:text-4xl font-black tracking-tight">
-              <span className="text-[#4ade80]">SITAO</span>
+              <span className="text-[#3d6bff]">SITAO</span>
               <span className="text-[#6b7280]">.fun</span>
             </div>
             <div className="w-36 h-[2px] bg-[#2e3244] rounded-full overflow-hidden">
@@ -35,7 +35,7 @@ export default function SplashScreen() {
                 initial={{ x: "-100%" }}
                 animate={{ x: "0%" }}
                 transition={{ duration: 1.3, ease: [0.16, 1, 0.3, 1] }}
-                className="h-full bg-[#4ade80] rounded-full"
+                className="h-full bg-[#3d6bff] rounded-full"
               />
             </div>
           </motion.div>

@@ -41,7 +41,6 @@ export default function Header({ user, profile }: { user: User; profile: Profile
 
   useEffect(() => { setOpen(false); setDropOpen(false) }, [pathname])
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropRef.current && !dropRef.current.contains(e.target as Node)) {
@@ -73,7 +72,7 @@ export default function Header({ user, profile }: { user: User; profile: Profile
 
           {/* Logo */}
           <Link href="/" className="flex items-center gap-1.5 font-black text-lg tracking-tight shrink-0">
-            <span className="text-[#4ade80]">SITAO</span>
+            <span className="text-[#3d6bff]">SITAO</span>
             <span className="text-[var(--muted)]">.fun</span>
           </Link>
 
@@ -99,7 +98,6 @@ export default function Header({ user, profile }: { user: User; profile: Profile
           <div className="hidden md:flex items-center gap-2">
             {user && profile ? (
               <div ref={dropRef} className="relative">
-                {/* Avatar button */}
                 <button
                   onClick={() => setDropOpen(!dropOpen)}
                   className="flex items-center gap-2.5 px-2 py-1.5 rounded-xl hover:bg-[var(--surface)] transition-colors duration-150 group"
@@ -117,7 +115,6 @@ export default function Header({ user, profile }: { user: User; profile: Profile
                   </svg>
                 </button>
 
-                {/* Dropdown */}
                 {dropOpen && (
                   <div className="absolute right-0 top-full mt-2 w-52 bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden py-1.5">
                     <div className="px-4 py-2.5 border-b border-[var(--border)] mb-1">
@@ -156,7 +153,7 @@ export default function Header({ user, profile }: { user: User; profile: Profile
                   Увійти
                 </Link>
                 <Link href="/auth/register"
-                  className="px-4 py-2 rounded-xl text-sm font-bold bg-[#4ade80] text-black hover:bg-[#22c55e] active:scale-95 transition-all duration-150">
+                  className="px-4 py-2 rounded-xl text-sm font-bold bg-[#3d6bff] text-white hover:bg-[#1a3a99] active:scale-95 transition-all duration-150">
                   Реєстрація
                 </Link>
               </>
@@ -194,7 +191,7 @@ export default function Header({ user, profile }: { user: User; profile: Profile
                   <Link key={href} href={href}
                     className={`flex items-center px-3.5 py-3 rounded-xl text-sm font-medium transition-colors ${
                       active
-                        ? 'bg-[var(--surface-2)] text-[#4ade80]'
+                        ? 'bg-[var(--surface-2)] text-[#3d6bff]'
                         : 'text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-2)]'
                     }`}
                   >
@@ -234,7 +231,7 @@ export default function Header({ user, profile }: { user: User; profile: Profile
                     Увійти
                   </Link>
                   <Link href="/auth/register"
-                    className="py-2.5 text-center text-sm font-bold rounded-xl bg-[#4ade80] text-black hover:bg-[#22c55e] transition-colors">
+                    className="py-2.5 text-center text-sm font-bold rounded-xl bg-[#3d6bff] text-white hover:bg-[#1a3a99] transition-colors">
                     Реєстрація
                   </Link>
                 </div>

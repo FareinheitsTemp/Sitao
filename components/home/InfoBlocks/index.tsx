@@ -41,7 +41,7 @@ const BLOCKS = [
     description: "Відкрий унікальні косметичні можливості та допоможи серверу продовжувати роботу.",
     href: "/donate",
     cta: "Переглянути донат",
-    accent: "#4ade80",
+    accent: "#3d6bff",
   },
 ];
 
@@ -58,7 +58,7 @@ export default function InfoBlocks() {
           animate={inView ? "visible" : "hidden"}
           className="text-center mb-14"
         >
-          <motion.p variants={fadeInUp} className="text-xs font-semibold uppercase tracking-widest text-[#4ade80] mb-3">
+          <motion.p variants={fadeInUp} className="text-xs font-semibold uppercase tracking-widest text-[#3d6bff] mb-3">
             Розділи
           </motion.p>
           <motion.h2 variants={fadeInUp} className="text-3xl sm:text-4xl font-black mb-4 tracking-tight">
@@ -78,7 +78,6 @@ export default function InfoBlocks() {
               variants={fadeInUp}
               className="group relative p-6 sm:p-8 rounded-3xl bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--muted)]/30 transition-all duration-300 overflow-hidden"
             >
-              {/* Background accent */}
               <div
                 className="absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl opacity-10 pointer-events-none transition-opacity duration-500 group-hover:opacity-20"
                 style={{ background: accent, transform: "translate(30%, -30%)" }}

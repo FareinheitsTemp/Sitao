@@ -9,11 +9,11 @@ import {
 import { fadeInUp, staggerContainer } from "@/constants/motion";
 
 const FEATURES = [
-  { icon: IconSword,  title: "Унікальний геймплей",   description: "Власні механіки та плагіни, яких немає на інших серверах.",      color: "#4ade80" },
+  { icon: IconSword,  title: "Унікальний геймплей",   description: "Власні механіки та плагіни, яких немає на інших серверах.",      color: "#3d6bff" },
   { icon: IconUsers,  title: "Жива спільнота",         description: "Активний Discord, регулярні ивенти та дружня атмосфера.",          color: "#60a5fa" },
   { icon: IconShield, title: "Захист від гріферів",    description: "Клейми, швидка модерація та прозора система скарг.",               color: "#f472b6" },
   { icon: IconTrophy, title: "Рейтинги та нагороди",   description: "Топи гравців, сезонні турніри та ексклюзивні призи.",              color: "#fbbf24" },
-  { icon: IconMap,    title: "Онлайн-карта",           description: "Dynmap у реальному часі — бачиш весь світ з браузера.",           color: "#34d399" },
+  { icon: IconMap,    title: "Онлайн-карта",           description: "Dynmap у реальному часі — бачиш весь світ з браузера.",           color: "#3d6bff" },
   { icon: IconBolt,   title: "Стабільний сервер",      description: "Потужне залізо, мінімальні пінги та своєчасні апдейти.",          color: "#a78bfa" },
   { icon: IconGift,   title: "Донат без p2w",          description: "Тільки косметика — баланс гри залишається чистим.",               color: "#fb923c" },
   { icon: IconHeart,  title: "Підтримка гравців",      description: "Чуйна адміністрація та тікет-система для будь-яких питань.",      color: "#f43f5e" },
@@ -32,7 +32,7 @@ export default function FeatureScroll() {
           animate={inView ? "visible" : "hidden"}
           className="text-center mb-14"
         >
-          <motion.p variants={fadeInUp} className="text-xs font-semibold uppercase tracking-widest text-[#4ade80] mb-3">
+          <motion.p variants={fadeInUp} className="text-xs font-semibold uppercase tracking-widest text-[#3d6bff] mb-3">
             Чому SITAO
           </motion.p>
           <motion.h2 variants={fadeInUp} className="text-3xl sm:text-4xl font-black mb-4 tracking-tight">

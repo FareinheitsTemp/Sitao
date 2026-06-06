@@ -25,13 +25,13 @@ export default function HeroSection() {
       <div
         className="absolute inset-0 opacity-[0.035]"
         style={{
-          backgroundImage: "radial-gradient(circle, #4ade80 1px, transparent 1px)",
+          backgroundImage: "radial-gradient(circle, #3d6bff 1px, transparent 1px)",
           backgroundSize: "40px 40px",
         }}
       />
 
       {/* Multiple glows */}
-      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-[#4ade80] opacity-[0.05] blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] rounded-full bg-[#3d6bff] opacity-[0.05] blur-[140px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] rounded-full bg-[#60a5fa] opacity-[0.04] blur-[120px] pointer-events-none" />
 
       <motion.div
@@ -42,10 +42,10 @@ export default function HeroSection() {
       >
         {/* Online badge */}
         <motion.div variants={fadeInUp} className="mb-8 inline-flex">
-          <span className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-[#4ade80]/25 bg-[rgba(74,222,128,0.08)] text-[#4ade80] text-sm font-medium">
+          <span className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full border border-[#3d6bff]/25 bg-[rgba(61,107,255,0.08)] text-[#3d6bff] text-sm font-medium">
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#4ade80] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#4ade80]" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3d6bff] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3d6bff]" />
             </span>
             Сервер онлайн · sitao.fun
           </span>
@@ -58,12 +58,12 @@ export default function HeroSection() {
         >
           Твій{" "}
           <span className="relative inline-block">
-            <span className="text-[#4ade80]">Minecraft</span>
+            <span className="text-[#3d6bff]">Minecraft</span>
             <motion.span
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
               transition={{ delay: 0.8, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-              className="absolute -bottom-1 left-0 right-0 h-[3px] bg-[#4ade80]/50 rounded-full origin-left"
+              className="absolute -bottom-1 left-0 right-0 h-[3px] bg-[#3d6bff]/50 rounded-full origin-left"
             />
           </span>
           {" "}дім
@@ -80,15 +80,15 @@ export default function HeroSection() {
         <motion.div variants={fadeInUp} className="mb-10 flex justify-center">
           <button
             onClick={copyIp}
-            className="group flex items-center gap-3 px-5 py-3 rounded-2xl bg-[var(--surface)] border border-[var(--border)] hover:border-[#4ade80]/40 transition-all duration-200"
+            className="group flex items-center gap-3 px-5 py-3 rounded-2xl bg-[var(--surface)] border border-[var(--border)] hover:border-[#3d6bff]/40 transition-all duration-200"
           >
             <span className="text-[var(--muted)] text-sm">IP:</span>
             <span className="font-mono font-bold text-[var(--foreground)] text-base">{SERVER_IP}</span>
-            <span className={`transition-all duration-200 ${copied ? "text-[#4ade80]" : "text-[var(--muted)] group-hover:text-[var(--foreground)]"}`}>
+            <span className={`transition-all duration-200 ${copied ? "text-[#3d6bff]" : "text-[var(--muted)] group-hover:text-[var(--foreground)]"}`}>
               {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
             </span>
             {copied && (
-              <span className="text-xs text-[#4ade80] font-medium">Скопійовано!</span>
+              <span className="text-xs text-[#3d6bff] font-medium">Скопійовано!</span>
             )}
           </button>
         </motion.div>
@@ -102,7 +102,7 @@ export default function HeroSection() {
             href={discord}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2.5 px-7 py-3.5 rounded-2xl bg-[#4ade80] text-black font-bold hover:bg-[#22c55e] active:scale-[0.98] transition-all duration-150 w-full sm:w-auto justify-center text-sm"
+            className="flex items-center gap-2.5 px-7 py-3.5 rounded-2xl bg-[#3d6bff] text-white font-bold hover:bg-[#1a3a99] active:scale-[0.98] transition-all duration-150 w-full sm:w-auto justify-center text-sm"
           >
             <IconBrandDiscord size={20} />
             Приєднатись до Discord
