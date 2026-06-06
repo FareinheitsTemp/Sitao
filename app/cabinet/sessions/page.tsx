@@ -1,9 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Monitor, AlertTriangle } from 'lucide-react'
 
 const countryFlag = (code: string | null) => {
-  if (!code) return '🌍'
+  if (!code) return null
   return code.toUpperCase().replace(/./g, c =>
     String.fromCodePoint(127397 + c.charCodeAt(0))
   )
@@ -27,7 +26,11 @@ export default async function SessionsPage() {
 
       {!sessions || sessions.length === 0 ? (
         <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-12 text-center">
-          <Monitor size={32} className="text-[var(--muted)] mx-auto mb-3" />
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-3">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
           <p className="text-[var(--muted)]">Сесій поки немає</p>
         </div>
       ) : (
@@ -40,25 +43,30 @@ export default async function SessionsPage() {
               }`}
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">{countryFlag(s.country_code)}</span>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-[var(--foreground)]">
-                        {s.country_code ?? 'Невідома країна'}
-                      </p>
-                      {s.is_suspicious && (
-                        <span className="flex items-center gap-1 text-xs text-red-400">
-                          <AlertTriangle size={12} /> Підозріло
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-[var(--muted)] text-xs">
-                      {new Date(s.created_at).toLocaleDateString('uk', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                <div>
+                  <div className="flex items-center gap-2">
+                    {countryFlag(s.country_code) && (
+                      <span className="text-base">{countryFlag(s.country_code)}</span>
+                    )}
+                    <p className="text-sm font-medium text-[var(--foreground)]">
+                      {s.country_code ?? 'Невідома країна'}
                     </p>
+                    {s.is_suspicious && (
+                      <span className="text-xs text-red-400 flex items-center gap-1">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                          <line x1="12" y1="9" x2="12" y2="13"/>
+                          <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                        Підозріло
+                      </span>
+                    )}
                   </div>
+                  <p className="text-[var(--muted)] text-xs mt-0.5">
+                    {new Date(s.created_at).toLocaleDateString('uk', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </p>
                 </div>
-                <p className="text-[var(--muted)] text-xs">
+                <p className="text-[var(--muted)] text-xs whitespace-nowrap">
                   до {new Date(s.expires_at).toLocaleDateString('uk', { day: 'numeric', month: 'short' })}
                 </p>
               </div>

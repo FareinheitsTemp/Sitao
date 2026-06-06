@@ -6,11 +6,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { Save } from 'lucide-react'
 
 const editSchema = z.object({
   display_name: z.string().max(32, 'Максимум 32 символи').optional().or(z.literal('')),
-  avatar_url: z.string().url('Невірний URL').optional().or(z.literal('')),
+  avatar_url:   z.string().url('Невірний URL').optional().or(z.literal('')),
 })
 
 type EditForm = z.infer<typeof editSchema>
@@ -30,7 +29,7 @@ export function ProfileEditForm({ profile }: { profile: Profile }) {
     resolver: zodResolver(editSchema),
     defaultValues: {
       display_name: profile.display_name ?? '',
-      avatar_url: profile.avatar_url ?? '',
+      avatar_url:   profile.avatar_url ?? '',
     },
   })
 
@@ -41,14 +40,11 @@ export function ProfileEditForm({ profile }: { profile: Profile }) {
         .from('profiles')
         .update({
           display_name: data.display_name || null,
-          avatar_url: data.avatar_url || null,
+          avatar_url:   data.avatar_url || null,
         })
         .eq('id', profile.id)
 
-      if (error) {
-        toast.error('Помилка збереження')
-        return
-      }
+      if (error) { toast.error('Помилка збереження'); return }
       toast.success('Профіль оновлено!')
     } catch {
       toast.error('Щось пішло не так')
@@ -60,7 +56,6 @@ export function ProfileEditForm({ profile }: { profile: Profile }) {
   return (
     <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-6">
       <h3 className="text-base font-semibold text-[var(--foreground)] mb-5">Редагувати профіль</h3>
-
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-[var(--foreground)] mb-1.5">Відображуване ім'я</label>
@@ -89,7 +84,16 @@ export function ProfileEditForm({ profile }: { profile: Profile }) {
           disabled={loading || !isDirty}
           className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] text-[#0f1117] font-semibold text-sm rounded-lg hover:bg-[var(--accent-dim)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
-          {loading ? <span className="w-4 h-4 border-2 border-[#0f1117]/30 border-t-[#0f1117] rounded-full animate-spin" /> : <Save size={16} />}
+          {loading
+            ? <span className="w-4 h-4 border-2 border-[#0f1117]/30 border-t-[#0f1117] rounded-full animate-spin" />
+            : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+            )
+          }
           {loading ? 'Зберігаємо...' : 'Зберегти'}
         </button>
       </form>

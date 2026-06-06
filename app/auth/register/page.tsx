@@ -8,7 +8,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { Eye, EyeOff, UserPlus } from 'lucide-react'
 
 const registerSchema = z.object({
   nickname: z
@@ -30,8 +29,25 @@ const registerSchema = z.object({
 
 type RegisterForm = z.infer<typeof registerSchema>
 
+function IconEye() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  )
+}
+
+function IconEyeOff() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+      <line x1="1" y1="1" x2="23" y2="23"/>
+    </svg>
+  )
+}
+
 export default function RegisterPage() {
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -46,16 +62,17 @@ export default function RegisterPage() {
 
   const passwordStrength = (() => {
     if (!password) return 0
-    let score = 0
-    if (password.length >= 8) score++
-    if (/[A-Z]/.test(password)) score++
-    if (/[0-9]/.test(password)) score++
-    if (/[^a-zA-Z0-9]/.test(password)) score++
-    return score
+    let s = 0
+    if (password.length >= 8) s++
+    if (/[A-Z]/.test(password)) s++
+    if (/[0-9]/.test(password)) s++
+    if (/[^a-zA-Z0-9]/.test(password)) s++
+    return s
   })()
 
-  const strengthColors = ['', 'bg-red-500', 'bg-yellow-500', 'bg-blue-400', 'bg-[var(--accent)]']
-  const strengthLabels = ['', 'Слабкий', 'Середній', 'Добрий', 'Надійний']
+  const strengthColor = ['', 'bg-red-500', 'bg-yellow-500', 'bg-blue-400', 'bg-[var(--accent)]'][passwordStrength]
+  const strengthText  = ['', 'Слабкий', 'Середній', 'Добрий', 'Надійний'][passwordStrength]
+  const strengthTextColor = ['', 'text-red-500', 'text-yellow-500', 'text-blue-400', 'text-[var(--accent)]'][passwordStrength]
 
   const onSubmit = async (data: RegisterForm) => {
     setLoading(true)
@@ -69,11 +86,10 @@ export default function RegisterPage() {
         },
       })
       if (error) {
-        if (error.message.includes('User already registered')) {
-          toast.error('Цей email вже зареєстрований')
-        } else {
-          toast.error(error.message)
-        }
+        toast.error(error.message.includes('User already registered')
+          ? 'Цей email вже зареєстрований'
+          : error.message
+        )
         return
       }
       setSuccess(true)
@@ -88,8 +104,10 @@ export default function RegisterPage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-md text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-[var(--surface)] border border-[var(--border)] mb-6">
-            <span className="text-4xl">📧</span>
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-[var(--surface)] border border-[var(--accent)]/40 mb-6">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
           </div>
           <h1 className="text-2xl font-bold text-[var(--foreground)] mb-3">Перевір пошту!</h1>
           <p className="text-[var(--muted)] leading-relaxed">
@@ -111,8 +129,13 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[var(--surface)] border border-[var(--border)] mb-4">
-            <span className="text-3xl">🎮</span>
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[var(--surface)] border border-[var(--border)] mb-4">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+              <line x1="19" y1="8" x2="19" y2="14"/>
+              <line x1="22" y1="11" x2="16" y2="11"/>
+            </svg>
           </div>
           <h1 className="text-3xl font-bold text-[var(--foreground)]">Реєстрація</h1>
           <p className="text-[var(--muted)] mt-2 text-sm">Створи свій акаунт на SITAO</p>
@@ -162,22 +185,19 @@ export default function RegisterPage() {
                 />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <IconEyeOff /> : <IconEye />}
                 </button>
               </div>
-              {/* Password strength */}
               {password && (
                 <div className="mt-2">
                   <div className="flex gap-1">
                     {[1,2,3,4].map(i => (
                       <div key={i} className={`h-1 flex-1 rounded-full transition-colors ${
-                        i <= passwordStrength ? strengthColors[passwordStrength] : 'bg-[var(--border)]'
+                        i <= passwordStrength ? strengthColor : 'bg-[var(--border)]'
                       }`} />
                     ))}
                   </div>
-                  <p className={`text-xs mt-1 ${strengthColors[passwordStrength].replace('bg-', 'text-')}`}>
-                    {strengthLabels[passwordStrength]}
-                  </p>
+                  <p className={`text-xs mt-1 ${strengthTextColor}`}>{strengthText}</p>
                 </div>
               )}
               {errors.password && <p className="mt-1.5 text-xs text-red-400">{errors.password.message}</p>}
@@ -196,7 +216,7 @@ export default function RegisterPage() {
                 />
                 <button type="button" onClick={() => setShowConfirm(!showConfirm)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
-                  {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showConfirm ? <IconEyeOff /> : <IconEye />}
                 </button>
               </div>
               {errors.confirmPassword && <p className="mt-1.5 text-xs text-red-400">{errors.confirmPassword.message}</p>}
@@ -207,11 +227,17 @@ export default function RegisterPage() {
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-[var(--accent)] text-[#0f1117] font-semibold rounded-lg hover:bg-[var(--accent-dim)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {loading ? (
-                <span className="w-5 h-5 border-2 border-[#0f1117]/30 border-t-[#0f1117] rounded-full animate-spin" />
-              ) : (
-                <UserPlus size={18} />
-              )}
+              {loading
+                ? <span className="w-5 h-5 border-2 border-[#0f1117]/30 border-t-[#0f1117] rounded-full animate-spin" />
+                : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                    <line x1="19" y1="8" x2="19" y2="14"/>
+                    <line x1="22" y1="11" x2="16" y2="11"/>
+                  </svg>
+                )
+              }
               {loading ? 'Реєструємось...' : 'Зареєструватись'}
             </button>
           </form>
