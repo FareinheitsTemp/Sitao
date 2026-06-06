@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { useState } from 'react'
@@ -21,8 +21,7 @@ const NAV_ITEMS = [
     label: 'Профіль',
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
       </svg>
     ),
   },
@@ -31,8 +30,7 @@ const NAV_ITEMS = [
     label: 'Сповіщення',
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
       </svg>
     ),
   },
@@ -51,8 +49,7 @@ const NAV_ITEMS = [
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
-        <line x1="8" y1="21" x2="16" y2="21"/>
-        <line x1="12" y1="17" x2="12" y2="21"/>
+        <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
       </svg>
     ),
   },
@@ -72,6 +69,7 @@ export function CabinetNav({ profile }: { profile: Profile }) {
   const router = useRouter()
   const [loggingOut, setLoggingOut] = useState(false)
   const role = ROLE_META[profile.role] ?? ROLE_META.player
+  const displayName = profile.display_name || profile.nickname
 
   const handleLogout = async () => {
     setLoggingOut(true)
@@ -87,26 +85,20 @@ export function CabinetNav({ profile }: { profile: Profile }) {
       initial={{ opacity: 0, x: -16 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-      className="w-full md:w-64 shrink-0"
+      // sticky so sidebar stays visible while content scrolls
+      className="w-full md:w-60 shrink-0 md:sticky md:top-24"
     >
       {/* Profile card */}
-      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-5 mb-3">
+      <div className="bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-4 mb-2">
         <div className="flex items-center gap-3">
-          <div className="relative w-12 h-12 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center overflow-hidden shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-[var(--surface-2)] border border-[var(--border)] flex items-center justify-center overflow-hidden shrink-0">
             {profile.avatar_url
               ? <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-              : (
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                  <circle cx="12" cy="7" r="4"/>
-                </svg>
-              )
+              : <span className="text-base font-bold text-[var(--muted)]">{displayName.charAt(0).toUpperCase()}</span>
             }
           </div>
           <div className="min-w-0">
-            <p className="font-bold text-[var(--foreground)] text-sm truncate">
-              {profile.display_name || profile.nickname}
-            </p>
+            <p className="font-bold text-[var(--foreground)] text-sm truncate">{displayName}</p>
             <p className="text-[var(--muted)] text-xs truncate">@{profile.nickname}</p>
           </div>
         </div>
@@ -146,7 +138,7 @@ export function CabinetNav({ profile }: { profile: Profile }) {
           )
         })}
 
-        <div className="border-t border-[var(--border)] mx-3" />
+        <div className="h-px bg-[var(--border)] mx-3" />
 
         <button
           onClick={handleLogout}
