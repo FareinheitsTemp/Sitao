@@ -5,21 +5,25 @@ import { CabinetNav } from '@/components/cabinet/CabinetNav'
 export default async function CabinetLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
 
-  // getUser() валідує токен через Supabase API — надійніше ніж getSession()
   const { data: { user }, error } = await supabase.auth.getUser()
 
+  console.log('[cabinet/layout] user:', user?.id ?? 'NULL', '| error:', error?.message ?? 'none')
+
   if (error || !user) {
+    console.log('[cabinet/layout] -> redirecting to /auth/login (no user)')
     redirect('/auth/login')
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('id, nickname, display_name, avatar_url, role, status')
     .eq('id', user!.id)
     .single()
 
+  console.log('[cabinet/layout] profile:', profile?.id ?? 'NULL', '| profileError:', profileError?.message ?? 'none')
+
   if (!profile) {
-    // Профіль не існує — можливо тригер не спрацював, даємо час
+    console.log('[cabinet/layout] -> redirecting to /auth/login (no profile)')
     redirect('/auth/login?error=profile_not_found')
   }
 
