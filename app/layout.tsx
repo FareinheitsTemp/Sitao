@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import HeaderServer from '@/components/layout/Header/HeaderServer'
 import Footer from '@/components/layout/Footer'
+import PageTransition from '@/components/layout/PageTransition'
 import { Toaster } from 'sonner'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
@@ -20,7 +21,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="scanlines" aria-hidden="true" />
         <HeaderServer />
         <main className="flex-1 flex flex-col">
-          {children}
+          <PageTransition>
+            {children}
+          </PageTransition>
         </main>
         <Footer />
         <Toaster position="bottom-right" theme="dark" richColors />
