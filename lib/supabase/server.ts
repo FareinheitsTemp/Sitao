@@ -13,9 +13,15 @@ export async function createClient() {
           return cookieStore.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
+          try {
+            // Записуємо оновлені куки (refresh token тощо)
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // Server Component не може писати куки — це нормально,
+            // middleware вже подбав про refresh
+          }
         },
       },
     }
