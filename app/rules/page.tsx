@@ -109,7 +109,7 @@ function ConstellationDiagram({ onSelect }: { onSelect: (cat: typeof CATEGORIES[
   const inView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <div className="relative flex items-center justify-center select-none">
+    <div className="relative flex items-center justify-center select-none pb-8">
       {/* Outer glow */}
       <div className="absolute w-[440px] h-[440px] rounded-full bg-[var(--accent)] opacity-[0.04] blur-[80px] pointer-events-none" />
 
@@ -118,7 +118,7 @@ function ConstellationDiagram({ onSelect }: { onSelect: (cat: typeof CATEGORIES[
         viewBox="0 0 600 600"
         width={520}
         height={520}
-        className="relative z-10 max-w-full"
+        className="relative z-10 w-full max-w-[520px]"
         style={{ overflow: 'visible' }}
       >
         {/* Orbit ring */}
@@ -284,7 +284,7 @@ function ConstellationDiagram({ onSelect }: { onSelect: (cat: typeof CATEGORIES[
 
       {/* Tap hint */}
       <motion.p
-        className="absolute bottom-0 text-xs text-[var(--muted)] tracking-wide"
+        className="absolute -bottom-6 text-xs text-[var(--muted)] tracking-wide"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }}
       >
         Натисни на вузол щоб відкрити правила
@@ -451,7 +451,7 @@ export default function RulesPage() {
   return (
     <div className="min-h-screen pt-16">
       {/* ── Hero ── */}
-      <section ref={heroRef} className="relative py-16 sm:py-24 px-4 sm:px-6 overflow-hidden">
+      <section ref={heroRef} className="relative py-16 sm:py-24 px-4 sm:px-6 overflow-hidden flex flex-col items-center">
         {/* Background blobs */}
         <div className="absolute inset-0 pointer-events-none">
           <motion.div
@@ -489,7 +489,7 @@ export default function RulesPage() {
           </motion.p>
 
           {/* Stats row */}
-          <motion.div variants={fadeInUp} className="flex items-center justify-center gap-6 mt-8">
+          <motion.div variants={fadeInUp} className="flex items-center justify-center gap-10 mt-8">
             {[
               { label: 'Категорій', value: CATEGORIES.length },
               { label: 'Правил', value: CATEGORIES.reduce((s, c) => s + c.rules.length, 0) },
@@ -540,7 +540,7 @@ export default function RulesPage() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="grid grid-cols-5 gap-3"
+            className="grid grid-cols-3 lg:grid-cols-5 gap-3"
           >
             {CATEGORIES.map((cat) => {
               const Icon = cat.icon;
