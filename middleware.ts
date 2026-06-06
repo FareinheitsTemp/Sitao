@@ -1,11 +1,6 @@
 /**
  * middleware.ts
  * Next.js Middleware — захист маршрутів та оновлення сесій
- *
- * Захищає:
- *  - /profile/* — тільки авторизовані
- *  - /admin/*   — тільки admin/owner
- *  - /api/*     — перевірка базових заголовків
  */
 
 import { createServerClient } from "@supabase/ssr";
@@ -13,7 +8,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 // Маршрути що потребують авторизації
-const PROTECTED_ROUTES = ["/profile", "/settings"];
+const PROTECTED_ROUTES = ["/cabinet", "/settings"];
 // Маршрути тільки для адмінів
 const ADMIN_ROUTES = ["/admin"];
 // Публічні auth маршрути (редірект якщо вже залоговані)
@@ -36,7 +31,7 @@ export async function middleware(request: NextRequest) {
     "Content-Security-Policy",
     [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Next.js потребує
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self'",
@@ -63,7 +58,6 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Оновлення токенів (важливо для SSR)
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -71,7 +65,7 @@ export async function middleware(request: NextRequest) {
   // ── Редірект для авторизованих на auth-сторінках ──────────
   if (AUTH_ROUTES.some((r) => pathname.startsWith(r))) {
     if (user) {
-      return NextResponse.redirect(new URL("/profile", request.url));
+      return NextResponse.redirect(new URL("/cabinet", request.url));
     }
     return response;
   }
@@ -91,7 +85,6 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/auth/login", request.url));
     }
 
-    // Перевірка ролі через profiles таблицю
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
@@ -103,12 +96,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // ── Блокування прямих звернень до API без правильних заголовків ──
+  // ── Блокування прямих звернень до API ──
   if (pathname.startsWith("/api/")) {
     const origin = request.headers.get("origin");
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "";
 
-    // Дозволяємо тільки запити зі свого домену (або у dev)
     if (
       origin &&
       process.env.NODE_ENV === "production" &&
@@ -126,13 +118,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Запускати middleware для всіх маршрутів крім:
-     * - _next/static (статичні файли)
-     * - _next/image (оптимізація зображень)
-     * - favicon.ico
-     * - public файли
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
