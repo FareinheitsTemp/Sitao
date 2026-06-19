@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { IconBrandDiscord, IconBrandTiktok, IconMap } from "@tabler/icons-react";
 
-const LINKS = [
+const NAV = [
   { href: "/posts",  label: "Новини" },
   { href: "/rules",  label: "Правила" },
   { href: "/staff",  label: "Персонал" },
@@ -16,60 +16,54 @@ export default function Footer() {
   const dynmap  = process.env.NEXT_PUBLIC_DYNMAP_URL  ?? "#";
 
   return (
-    <footer className="border-t border-[var(--border)] bg-[var(--surface)]">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-8">
+    <footer className="border-t border-[var(--border)]">
+      <div className="max-w-6xl mx-auto px-6 lg:px-8">
+
+        {/* Top row */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-10 gap-6 border-b border-[var(--border)]">
           <div>
-            <div className="font-black text-base mb-3 tracking-tight">
-              <span className="text-[#3d6bff]">SITAO</span>
+            <p className="font-black text-sm tracking-tight mb-1">
+              <span className="text-[var(--accent)]">SITAO</span>
               <span className="text-[var(--muted)]">.fun</span>
-            </div>
-            <p className="text-sm text-[var(--muted)] leading-relaxed">
-              Minecraft сервер з живою спільнотою та якісним геймплеєм.
+            </p>
+            <p className="text-xs text-[var(--muted)] leading-relaxed max-w-xs">
+              Minecraft сервер з живою спільнотою.
             </p>
           </div>
 
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)] mb-4">Навігація</p>
-            <ul className="space-y-2">
-              {LINKS.map(({ href, label }) => (
-                <li key={href}>
-                  <Link
-                    href={href}
-                    className="text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
-                  >
-                    {label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <nav className="flex items-center gap-6 flex-wrap">
+            {NAV.map(({ href, label }) => (
+              <Link key={href} href={href}
+                className="text-xs text-[var(--muted)] hover:text-[var(--foreground)] transition-colors duration-150"
+              >
+                {label}
+              </Link>
+            ))}
+          </nav>
 
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-[var(--muted)] mb-4">Соцмережі</p>
-            <div className="flex flex-col gap-2.5">
-              <a href={discord} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[#5865F2] transition-colors">
-                <IconBrandDiscord size={15} /> Discord
-              </a>
-              <a href={tiktok} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
-                <IconBrandTiktok size={15} /> TikTok
-              </a>
-              <a href={dynmap} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-2 text-sm text-[var(--muted)] hover:text-[#3d6bff] transition-colors">
-                <IconMap size={15} /> Dynmap карта
-              </a>
-            </div>
+          <div className="flex items-center gap-5">
+            <a href={discord} target="_blank" rel="noopener noreferrer"
+              className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors duration-150">
+              <IconBrandDiscord size={16} />
+            </a>
+            <a href={tiktok} target="_blank" rel="noopener noreferrer"
+              className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors duration-150">
+              <IconBrandTiktok size={16} />
+            </a>
+            <a href={dynmap} target="_blank" rel="noopener noreferrer"
+              className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors duration-150">
+              <IconMap size={16} />
+            </a>
           </div>
         </div>
 
-        <div className="border-t border-[var(--border)] pt-6 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <p className="text-xs text-[var(--muted)]">
-            © {new Date().getFullYear()} sitao.fun — Всі права захищені
+        {/* Bottom row */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-5 gap-2">
+          <p className="text-[10px] font-mono text-[var(--muted)]">
+            © {new Date().getFullYear()} sitao.fun
           </p>
-          <p className="text-xs text-[var(--muted)]">
-            IP: <span className="font-mono text-[var(--foreground)]/60">sitao.fun</span>
+          <p className="text-[10px] font-mono text-[var(--muted)]">
+            IP · sitao.fun
           </p>
         </div>
       </div>

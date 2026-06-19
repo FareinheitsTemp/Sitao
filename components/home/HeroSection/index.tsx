@@ -2,36 +2,88 @@
 
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { IconBrandDiscord, IconCopy, IconCheck, IconMap, IconDeviceGamepad2, IconServer } from "@tabler/icons-react";
+import { IconBrandDiscord, IconCopy, IconCheck, IconMap } from "@tabler/icons-react";
 import { useState, useRef, useEffect } from "react";
 
 const SERVER_IP = "sitao.fun";
 
-const TIMELINE = [
-  { year: "2022", label: "Запуск сервера",        detail: "Перший запуск SITAO.fun — 12 гравців online",                y: 78 },
-  { year: "2023", label: "Спільнота зростає",      detail: "Discord досяг 500 учасників, перший великий ивент",           y: 52 },
-  { year: "2024", label: "Великий апдейт",         detail: "Нові плагіни, клейм-система та рейтинги гравців",             y: 30 },
-  { year: "2025", label: "5 000 гравців",          detail: "Milestone: 5к унікальних гравців за весь час",                y: 14 },
-  { year: "2026", label: "Зараз · 120+ online",    detail: "Сервер живе, розвивається і чекає на тебе",                  y: 8  },
+const STATS = [
+  { value: "120+",  label: "онлайн зараз" },
+  { value: "5 000+",label: "гравців" },
+  { value: "4 роки", label: "безперервно" },
 ];
 
-const W = 480;
-const H = 220;
-const PAD_X = 40;
-const PAD_Y = 20;
-const chartW = W - PAD_X * 2;
-const chartH = H - PAD_Y * 2;
+const TIMELINE = [
+  { year: "2022", label: "Запуск сервера",     detail: "Перший запуск SITAO.fun — 12 гравців online",                y: 78 },
+  { year: "2023", label: "Спільнота зростає",  detail: "Discord досяг 500 учасників, перший великий івент",       y: 52 },
+  { year: "2024", label: "Великий апдейт",      detail: "Нові плагіни, клейм-система та рейтинги гравців",         y: 30 },
+  { year: "2025", label: "5 000 гравців",       detail: "Milestone: 5к унікальних гравців за весь час",           y: 14 },
+  { year: "2026", label: "Зараз · 120+ online",  detail: "Сервер живе, розвивається і чекає на тебе",          y: 8  },
+];
 
-function xOf(i: number) { return PAD_X + (i / (TIMELINE.length - 1)) * chartW; }
-function yOf(pct: number) { return PAD_Y + (pct / 100) * chartH; }
+const W = 480, H = 200, PX = 36, PY = 16;
+const cW = W - PX * 2, cH = H - PY * 2;
+function xOf(i: number) { return PX + (i / (TIMELINE.length - 1)) * cW; }
+function yOf(p: number) { return PY + (p / 100) * cH; }
+const pts = TIMELINE.map((t, i) => ({ x: xOf(i), y: yOf(t.y) }));
+
+function buildPath(ratio: number) {
+  if (ratio <= 0 || pts.length < 2) return "";
+  const total = TIMELINE.length - 1;
+  const drawn = ratio * total;
+  const full = Math.floor(drawn);
+  const frac = drawn - full;
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i = 0; i < full && i < pts.length - 1; i++) {
+    const cx1 = pts[i].x + (pts[i+1].x - pts[i].x) * 0.5;
+    const cx2 = pts[i+1].x - (pts[i+1].x - pts[i].x) * 0.5;
+    d += ` C ${cx1} ${pts[i].y} ${cx2} ${pts[i+1].y} ${pts[i+1].x} ${pts[i+1].y}`;
+  }
+  if (full < pts.length - 1 && frac > 0) {
+    const i = full;
+    const cx1 = pts[i].x + (pts[i+1].x - pts[i].x) * 0.5;
+    const cx2 = pts[i+1].x - (pts[i+1].x - pts[i].x) * 0.5;
+    const t2 = frac;
+    const bx = (1-t2)**3*pts[i].x + 3*(1-t2)**2*t2*cx1 + 3*(1-t2)*t2**2*cx2 + t2**3*pts[i+1].x;
+    const by = (1-t2)**3*pts[i].y + 3*(1-t2)**2*t2*pts[i].y + 3*(1-t2)*t2**2*pts[i+1].y + t2**3*pts[i+1].y;
+    d += ` C ${cx1} ${pts[i].y} ${cx2} ${pts[i+1].y} ${bx} ${by}`;
+  }
+  return d;
+}
+
+function buildArea(ratio: number) {
+  const line = buildPath(ratio);
+  if (!line) return "";
+  const total = TIMELINE.length - 1;
+  const drawn = ratio * total;
+  const full = Math.floor(Math.min(drawn, total));
+  const frac = drawn - full;
+  let ex: number, ey: number;
+  if (full >= total) { ex = pts[pts.length-1].x; ey = pts[pts.length-1].y; }
+  else {
+    const i = full;
+    const cx1 = pts[i].x + (pts[i+1].x - pts[i].x) * 0.5;
+    const cx2 = pts[i+1].x - (pts[i+1].x - pts[i].x) * 0.5;
+    ex = (1-frac)**3*pts[i].x + 3*(1-frac)**2*frac*cx1 + 3*(1-frac)*frac**2*cx2 + frac**3*pts[i+1].x;
+    ey = (1-frac)**3*pts[i].y + 3*(1-frac)**2*frac*pts[i].y + 3*(1-frac)*frac**2*pts[i+1].y + frac**3*pts[i+1].y;
+  }
+  return `${line} L ${ex} ${H - PY} L ${pts[0].x} ${H - PY} Z`;
+}
+
+const reveal = {
+  hidden: { opacity: 0, y: 22, clipPath: "inset(0 0 100% 0)" },
+  visible: (i = 0) => ({
+    opacity: 1, y: 0, clipPath: "inset(0 0 0% 0)",
+    transition: { duration: 0.7, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] },
+  }),
+};
 
 export default function HeroSection() {
   const [copied, setCopied] = useState(false);
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
-  const svgRef = useRef<SVGSVGElement>(null);
   const sectionRef = useRef(null);
-  const inView = useInView(sectionRef, { once: true, margin: "-100px" });
+  const inView = useInView(sectionRef, { once: true, margin: "-80px" });
   const discord = process.env.NEXT_PUBLIC_DISCORD_URL ?? "#";
   const dynmap  = process.env.NEXT_PUBLIC_DYNMAP_URL  ?? "#";
 
@@ -39,15 +91,16 @@ export default function HeroSection() {
     if (!inView) return;
     let frame: number;
     let start: number | null = null;
-    const duration = 2200;
+    const duration = 1800;
+    const ease = (t: number) => t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
     const animate = (ts: number) => {
       if (!start) start = ts;
       const p = Math.min((ts - start) / duration, 1);
-      setProgress(p);
+      setProgress(ease(p));
       if (p < 1) frame = requestAnimationFrame(animate);
     };
-    frame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frame);
+    const timer = setTimeout(() => { frame = requestAnimationFrame(animate); }, 400);
+    return () => { clearTimeout(timer); cancelAnimationFrame(frame); };
   }, [inView]);
 
   function copyIp() {
@@ -56,239 +109,229 @@ export default function HeroSection() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  const pts = TIMELINE.map((t, i) => ({ x: xOf(i), y: yOf(t.y) }));
-
-  function buildPath(ratio: number) {
-    if (ratio <= 0 || pts.length < 2) return "";
-    const totalLen = TIMELINE.length - 1;
-    const drawn = ratio * totalLen;
-    const full = Math.floor(drawn);
-    const frac = drawn - full;
-    let d = `M ${pts[0].x} ${pts[0].y}`;
-    for (let i = 0; i < full && i < pts.length - 1; i++) {
-      const cp1x = pts[i].x + (pts[i+1].x - pts[i].x) * 0.5;
-      const cp2x = pts[i+1].x - (pts[i+1].x - pts[i].x) * 0.5;
-      d += ` C ${cp1x} ${pts[i].y} ${cp2x} ${pts[i+1].y} ${pts[i+1].x} ${pts[i+1].y}`;
-    }
-    if (full < pts.length - 1 && frac > 0) {
-      const i = full;
-      const cp1x = pts[i].x + (pts[i+1].x - pts[i].x) * 0.5;
-      const cp2x = pts[i+1].x - (pts[i+1].x - pts[i].x) * 0.5;
-      const t2 = frac;
-      const bx = (1-t2)**3*pts[i].x + 3*(1-t2)**2*t2*cp1x + 3*(1-t2)*t2**2*cp2x + t2**3*pts[i+1].x;
-      const by = (1-t2)**3*pts[i].y + 3*(1-t2)**2*t2*pts[i].y + 3*(1-t2)*t2**2*pts[i+1].y + t2**3*pts[i+1].y;
-      d += ` C ${cp1x} ${pts[i].y} ${cp2x} ${pts[i+1].y} ${bx} ${by}`;
-    }
-    return d;
-  }
-
-  function buildAreaPath(ratio: number) {
-    const linePath = buildPath(ratio);
-    if (!linePath) return "";
-    const totalLen = TIMELINE.length - 1;
-    const drawn = ratio * totalLen;
-    const full = Math.floor(Math.min(drawn, totalLen));
-    const frac = drawn - full;
-    let endX: number, endY: number;
-    if (full >= totalLen) {
-      endX = pts[pts.length-1].x; endY = pts[pts.length-1].y;
-    } else {
-      const i = full;
-      const cp1x = pts[i].x + (pts[i+1].x - pts[i].x) * 0.5;
-      const cp2x = pts[i+1].x - (pts[i+1].x - pts[i].x) * 0.5;
-      const t2 = frac;
-      endX = (1-t2)**3*pts[i].x + 3*(1-t2)**2*t2*cp1x + 3*(1-t2)*t2**2*cp2x + t2**3*pts[i+1].x;
-      endY = (1-t2)**3*pts[i].y + 3*(1-t2)**2*t2*pts[i].y + 3*(1-t2)*t2**2*pts[i+1].y + t2**3*pts[i+1].y;
-    }
-    return `${linePath} L ${endX} ${H - PAD_Y} L ${pts[0].x} ${H - PAD_Y} Z`;
-  }
-
-  const headX = (() => {
-    if (progress >= 1) return pts[pts.length-1].x;
-    const full = Math.floor(progress * (TIMELINE.length-1));
-    const frac = progress * (TIMELINE.length-1) - full;
-    if (full >= TIMELINE.length-1) return pts[pts.length-1].x;
-    const i = full;
-    const cp1x = pts[i].x + (pts[i+1].x - pts[i].x) * 0.5;
-    const cp2x = pts[i+1].x - (pts[i+1].x - pts[i].x) * 0.5;
-    return (1-frac)**3*pts[i].x + 3*(1-frac)**2*frac*cp1x + 3*(1-frac)*frac**2*cp2x + frac**3*pts[i+1].x;
-  })();
-  const headY = (() => {
-    if (progress >= 1) return pts[pts.length-1].y;
-    const full = Math.floor(progress * (TIMELINE.length-1));
-    const frac = progress * (TIMELINE.length-1) - full;
-    if (full >= TIMELINE.length-1) return pts[pts.length-1].y;
-    const i = full;
-    return (1-frac)**3*pts[i].y + 3*(1-frac)**2*frac*pts[i].y + 3*(1-frac)*frac**2*pts[i+1].y + frac**3*pts[i+1].y;
-  })();
-
   return (
-    <section ref={sectionRef} className="relative min-h-screen flex items-center overflow-hidden pt-16">
-      <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: "radial-gradient(circle, #3d6bff 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
-      <div className="absolute top-1/3 left-1/4 w-[600px] h-[600px] rounded-full bg-[#3d6bff] opacity-[0.06] blur-[160px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/3 w-[400px] h-[400px] rounded-full bg-[#22d3ee] opacity-[0.03] blur-[120px] pointer-events-none" />
+    <section ref={sectionRef} className="relative min-h-screen flex items-center pt-16 overflow-hidden">
+      {/* single subtle glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full bg-[#3d6bff] opacity-[0.04] blur-[160px] pointer-events-none" />
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center min-h-[calc(100vh-4rem)] py-16">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-8 items-center min-h-[calc(100vh-4rem)] py-20">
 
           {/* LEFT */}
-          <motion.div initial="hidden" animate="visible" variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }} className="flex flex-col justify-center">
-            <motion.div variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16,1,0.3,1] } } }} className="mb-6">
-              <span className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-[#3d6bff]/30 bg-[rgba(61,107,255,0.08)] text-[#5b84ff] text-xs font-semibold tracking-wide uppercase">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3d6bff] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#3d6bff]" />
-                </span>
-                Сервер онлайн · sitao.fun
+          <div className="flex flex-col justify-center">
+            {/* Eyebrow */}
+            <motion.div
+              custom={0} variants={reveal} initial="hidden"
+              animate={inView ? "visible" : "hidden"}
+              className="mb-8 flex items-center gap-3"
+            >
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3d6bff] opacity-60" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#3d6bff]" />
               </span>
+              <span className="text-xs font-mono text-[var(--muted-lt)] tracking-widest uppercase">sitao.fun · онлайн</span>
             </motion.div>
 
-            <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16,1,0.3,1] } } }} className="mb-6">
-              <h1 className="text-5xl sm:text-6xl xl:text-7xl font-black tracking-tight leading-[1.02]">
+            {/* Heading */}
+            <div className="overflow-hidden mb-6">
+              <motion.h1
+                custom={1} variants={reveal} initial="hidden"
+                animate={inView ? "visible" : "hidden"}
+                className="text-[clamp(3rem,7vw,5.5rem)] font-black tracking-tight leading-[1.0] text-[var(--foreground)]"
+              >
                 Твій<br />
-                <span style={{ background: "linear-gradient(135deg, #3d6bff 0%, #22d3ee 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>Minecraft</span><br />
+                <span className="gradient-text">Minecraft</span><br />
                 дім
-              </h1>
-            </motion.div>
+              </motion.h1>
+            </div>
 
-            <motion.p variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16,1,0.3,1] } } }} className="text-base sm:text-lg text-[var(--muted)] max-w-md mb-8 leading-relaxed">
-              Сервер з живою спільнотою, власними механіками та атмосферою, яка запам&apos;ятовується.
+            {/* Description */}
+            <motion.p
+              custom={2} variants={reveal} initial="hidden"
+              animate={inView ? "visible" : "hidden"}
+              className="text-base text-[var(--muted-lt)] max-w-sm mb-10 leading-relaxed"
+            >
+              Сервер з живою спільнотою, власними механіками та атмосферою,
+              яка запам&apos;ятовується.
             </motion.p>
 
-            <motion.div variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.16,1,0.3,1] } } }} className="flex flex-wrap gap-3 mb-8">
-              <a href={discord} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl font-bold text-sm text-white transition-all duration-150 active:scale-[0.97]" style={{ background: "linear-gradient(135deg, #3d6bff 0%, #1a3a99 100%)", boxShadow: "0 0 24px rgba(61,107,255,0.35)" }}>
-                <IconBrandDiscord size={18} /> Приєднатись
+            {/* CTA buttons */}
+            <motion.div
+              custom={3} variants={reveal} initial="hidden"
+              animate={inView ? "visible" : "hidden"}
+              className="flex flex-wrap gap-3 mb-10"
+            >
+              <a
+                href={discord} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#3d6bff] hover:bg-[#2d5bef] active:scale-[0.97] transition-all duration-150"
+              >
+                <IconBrandDiscord size={16} />
+                Приєднатись
               </a>
-              <a href={dynmap} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl text-sm font-medium border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-2)] transition-all duration-150 active:scale-[0.97]">
-                <IconMap size={18} /> Карта
+              <a
+                href={dynmap} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-[var(--muted-lt)] border border-[var(--border)] hover:border-[var(--border-lt)] hover:text-[var(--foreground)] active:scale-[0.97] transition-all duration-150"
+              >
+                <IconMap size={16} />
+                Карта
               </a>
-              <Link href="/donate" className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-medium border border-[var(--border)] text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)] transition-all duration-150 active:scale-[0.97]">
+              <Link
+                href="/donate"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] active:scale-[0.97] transition-all duration-150"
+              >
                 Донат
               </Link>
             </motion.div>
 
-            <motion.div variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16,1,0.3,1] } } }} className="flex flex-col gap-4">
-              <button onClick={copyIp} className="group inline-flex items-center gap-3 w-fit px-4 py-2.5 rounded-xl bg-[var(--surface)] border border-[var(--border)] hover:border-[#3d6bff]/40 transition-all duration-200">
-                <span className="text-[var(--muted)] text-xs font-medium">IP:</span>
-                <span className="font-mono font-bold text-[var(--foreground)] text-sm">{SERVER_IP}</span>
-                <span className={`transition-colors duration-200 ${copied ? "text-[#3d6bff]" : "text-[var(--muted)] group-hover:text-[var(--foreground)]"}`}>
-                  {copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+            {/* IP + stats */}
+            <motion.div
+              custom={4} variants={reveal} initial="hidden"
+              animate={inView ? "visible" : "hidden"}
+              className="space-y-4"
+            >
+              <button
+                onClick={copyIp}
+                className="group flex items-center gap-3 w-fit"
+              >
+                <span className="text-xs font-mono text-[var(--muted)] uppercase tracking-widest">IP</span>
+                <div className="w-px h-3 bg-[var(--border)]" />
+                <span className="font-mono text-sm text-[var(--foreground-dim)] group-hover:text-[var(--foreground)] transition-colors">{SERVER_IP}</span>
+                <span className={`transition-colors duration-200 ${copied ? "text-[#3d6bff]" : "text-[var(--muted)] group-hover:text-[var(--muted-lt)]"}`}>
+                  {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
                 </span>
-                {copied && <span className="text-xs text-[#3d6bff] font-medium">Скопійовано!</span>}
+                {copied && <span className="text-xs text-[#3d6bff] font-mono">Скопійовано</span>}
               </button>
-              <div className="flex items-center gap-4 flex-wrap">
-                <span className="text-xs text-[var(--muted)] font-medium">Довіряють:</span>
-                {["120+ гравців", "5к+ за всі часи", "730+ днів роботи"].map(t => (
-                  <span key={t} className="text-xs px-2.5 py-1 rounded-lg bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)]">{t}</span>
+
+              {/* Stats row */}
+              <div className="flex items-center gap-6">
+                {STATS.map(({ value, label }, i) => (
+                  <div key={i} className="flex flex-col">
+                    <span className="text-sm font-black text-[var(--foreground)]">{value}</span>
+                    <span className="text-[10px] font-mono text-[var(--muted)] uppercase tracking-wider">{label}</span>
+                  </div>
                 ))}
               </div>
             </motion.div>
-          </motion.div>
+          </div>
 
-          {/* RIGHT — Timeline Graph */}
-          <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.3, ease: [0.16,1,0.3,1] }} className="flex flex-col items-center justify-center relative">
-            <div className="relative w-full max-w-lg rounded-3xl border border-[var(--border)] overflow-hidden" style={{ background: "rgba(13,20,40,0.7)", backdropFilter: "blur(16px)", boxShadow: "0 0 60px rgba(61,107,255,0.12), 0 32px 64px rgba(0,0,0,0.4)" }}>
-              <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[var(--border)]">
+          {/* RIGHT — chart */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={inView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="flex flex-col items-center justify-center"
+          >
+            <div
+              className="w-full max-w-lg rounded-2xl border border-[var(--border)] overflow-hidden"
+              style={{ background: "var(--surface)" }}
+            >
+              {/* Chart header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-widest text-[#3d6bff] mb-0.5">Активність сервера</p>
-                  <p className="text-sm font-black text-[var(--foreground)]">Історія SITAO · 2022 – 2026</p>
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-[var(--muted)] mb-0.5">Активність</p>
+                  <p className="text-sm font-bold text-[var(--foreground)]">SITAO · 2022–2026</p>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#3d6bff]/80" />
+                  <span className="w-2 h-2 rounded-full bg-[var(--border-lt)]" />
+                  <span className="w-2 h-2 rounded-full bg-[var(--border-lt)]" />
+                  <span className="w-2 h-2 rounded-full bg-[#3d6bff]/60" />
                 </div>
               </div>
 
-              <div className="px-4 pt-4 pb-2">
-                <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} width="100%" className="overflow-visible" style={{ display: "block" }}>
+              {/* SVG */}
+              <div className="px-4 pt-5 pb-3">
+                <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", overflow: "visible" }}>
                   <defs>
-                    <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                    <linearGradient id="lg" x1="0" y1="0" x2="1" y2="0">
                       <stop offset="0%" stopColor="#1a3a99" />
                       <stop offset="100%" stopColor="#3d6bff" />
                     </linearGradient>
-                    <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3d6bff" stopOpacity="0.25" />
+                    <linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#3d6bff" stopOpacity="0.15" />
                       <stop offset="100%" stopColor="#3d6bff" stopOpacity="0" />
                     </linearGradient>
-                    <filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur" /><feMerge><feMergeNode in="coloredBlur" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
                   </defs>
-                  {[0.25, 0.5, 0.75].map((f, i) => (<line key={i} x1={PAD_X} y1={PAD_Y + f * chartH} x2={W - PAD_X} y2={PAD_Y + f * chartH} stroke="rgba(61,107,255,0.08)" strokeWidth="1" />))}
-                  {progress > 0 && <path d={buildAreaPath(progress)} fill="url(#areaGrad)" />}
-                  {progress > 0 && <path d={buildPath(progress)} fill="none" stroke="rgba(61,107,255,0.4)" strokeWidth="6" strokeLinecap="round" style={{ filter: "blur(4px)" }} />}
-                  {progress > 0 && <path d={buildPath(progress)} fill="none" stroke="url(#lineGrad)" strokeWidth="2.5" strokeLinecap="round" filter="url(#glow)" />}
+                  {[0.25, 0.5, 0.75].map((f, i) => (
+                    <line key={i} x1={PX} y1={PY + f*cH} x2={W-PX} y2={PY + f*cH} stroke="rgba(61,107,255,0.06)" strokeWidth="1" />
+                  ))}
+                  {progress > 0 && <path d={buildArea(progress)} fill="url(#ag)" />}
+                  {progress > 0 && <path d={buildPath(progress)} fill="none" stroke="url(#lg)" strokeWidth="2" strokeLinecap="round" />}
                   {TIMELINE.map((t, i) => {
-                    const visible = progress >= (i / (TIMELINE.length - 1)) - 0.02;
-                    return visible ? (
+                    const vis = progress >= (i / (TIMELINE.length - 1)) - 0.02;
+                    return vis ? (
                       <g key={i} style={{ cursor: "pointer" }} onMouseEnter={() => setActiveIdx(i)} onMouseLeave={() => setActiveIdx(null)}>
-                        <circle cx={pts[i].x} cy={pts[i].y} r={16} fill="transparent" />
-                        <circle cx={pts[i].x} cy={pts[i].y} r={5} fill={activeIdx === i ? "#5b84ff" : "#3d6bff"} stroke={activeIdx === i ? "rgba(91,132,255,0.5)" : "rgba(61,107,255,0.3)"} strokeWidth={activeIdx === i ? "8" : "4"} style={{ filter: "url(#glow)", transition: "all 0.2s" }} />
-                        <text x={pts[i].x} y={H - 2} textAnchor="middle" fontSize="11" fontWeight="600" fill={activeIdx === i ? "#5b84ff" : "rgba(74,95,138,0.9)"} style={{ transition: "fill 0.2s", fontFamily: "var(--font-geist-mono, monospace)" }}>{t.year}</text>
+                        <circle cx={pts[i].x} cy={pts[i].y} r={14} fill="transparent" />
+                        <circle cx={pts[i].x} cy={pts[i].y} r={activeIdx === i ? 4 : 3}
+                          fill={activeIdx === i ? "#5b84ff" : "#3d6bff"}
+                          stroke={activeIdx === i ? "rgba(91,132,255,0.35)" : "rgba(61,107,255,0.2)"}
+                          strokeWidth={activeIdx === i ? 6 : 4}
+                          style={{ transition: "all 0.15s" }}
+                        />
+                        <text x={pts[i].x} y={H-2} textAnchor="middle" fontSize="10"
+                          fill={activeIdx === i ? "#5b84ff" : "rgba(61,107,255,0.5)"}
+                          fontFamily="var(--font-geist-mono, monospace)" fontWeight="500"
+                          style={{ transition: "fill 0.15s" }}
+                        >{t.year}</text>
                       </g>
                     ) : null;
                   })}
-                  {progress > 0 && progress < 1 && (
-                    <>
-                      <circle cx={headX} cy={headY} r={8} fill="rgba(61,107,255,0.2)"><animate attributeName="r" values="6;12;6" dur="1.5s" repeatCount="indefinite" /><animate attributeName="opacity" values="0.3;0;0.3" dur="1.5s" repeatCount="indefinite" /></circle>
-                      <circle cx={headX} cy={headY} r={4} fill="#3d6bff" filter="url(#glow)" />
-                    </>
-                  )}
                 </svg>
               </div>
 
-              <div className="px-6 pb-5 min-h-[60px]">
+              {/* Tooltip */}
+              <div className="px-5 pb-4 min-h-[52px]">
                 <AnimatePresence mode="wait">
                   {activeIdx !== null ? (
-                    <motion.div key={activeIdx} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2 }} className="flex flex-col gap-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono font-bold text-[#3d6bff]">{TIMELINE[activeIdx].year}</span>
-                        <span className="text-sm font-bold text-[var(--foreground)]">{TIMELINE[activeIdx].label}</span>
+                    <motion.div key={activeIdx}
+                      initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -3 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <div className="flex items-baseline gap-2 mb-0.5">
+                        <span className="text-[10px] font-mono text-[#3d6bff] tracking-widest">{TIMELINE[activeIdx].year}</span>
+                        <span className="text-sm font-bold">{TIMELINE[activeIdx].label}</span>
                       </div>
-                      <p className="text-xs text-[var(--muted)] leading-relaxed">{TIMELINE[activeIdx].detail}</p>
+                      <p className="text-xs text-[var(--muted-lt)]">{TIMELINE[activeIdx].detail}</p>
                     </motion.div>
                   ) : (
-                    <motion.p key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-xs text-[var(--muted)] italic">
-                      Наведи на точку, щоб дізнатись більше про цей момент
+                    <motion.p key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                      className="text-[11px] text-[var(--muted)] font-mono"
+                    >
+                      наведи на точку
                     </motion.p>
                   )}
                 </AnimatePresence>
               </div>
 
+              {/* Stats row */}
               <div className="grid grid-cols-3 border-t border-[var(--border)]">
-                {[{ v: "4 роки", l: "онлайн" }, { v: "5 000+", l: "гравців" }, { v: "120+", l: "зараз" }].map(({ v, l }, i) => (
-                  <div key={i} className={`flex flex-col items-center py-3 gap-0.5 ${i < 2 ? "border-r border-[var(--border)]" : ""}`}>
-                    <span className="text-base font-black text-[var(--foreground)]">{v}</span>
-                    <span className="text-[10px] text-[var(--muted)] uppercase tracking-widest">{l}</span>
+                {[
+                  { v: "4 роки",  l: "онлайн" },
+                  { v: "5 000+", l: "гравців" },
+                  { v: "120+",   l: "зараз" },
+                ].map(({ v, l }, i) => (
+                  <div key={i} className={`flex flex-col items-center py-3.5 gap-0.5 ${i < 2 ? "border-r border-[var(--border)]" : ""}`}>
+                    <span className="text-sm font-black">{v}</span>
+                    <span className="text-[9px] font-mono text-[var(--muted)] uppercase tracking-widest">{l}</span>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* Floating badge — Vanilla+ (tabler icon instead of emoji) */}
-            <motion.div initial={{ opacity: 0, scale: 0.8, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ delay: 1.8, duration: 0.5, ease: [0.16,1,0.3,1] }} className="absolute -bottom-5 -left-4 flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border border-[var(--border)] shadow-xl" style={{ background: "rgba(13,20,40,0.95)", backdropFilter: "blur(12px)" }}>
-              <div className="p-1.5 rounded-lg bg-[#3d6bff]/15">
-                <IconDeviceGamepad2 size={16} className="text-[#3d6bff]" />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-[var(--foreground)] leading-none mb-0.5">Vanilla+</p>
-                <p className="text-[10px] text-[var(--muted)]">Minecraft 1.21</p>
-              </div>
-            </motion.div>
-
-            {/* Floating badge — online */}
-            <motion.div initial={{ opacity: 0, scale: 0.8, y: -10 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ delay: 2.0, duration: 0.5, ease: [0.16,1,0.3,1] }} className="absolute -top-4 -right-2 flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[var(--border)] shadow-xl" style={{ background: "rgba(13,20,40,0.95)", backdropFilter: "blur(12px)" }}>
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3d6bff] opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#3d6bff]" />
-              </span>
-              <span className="text-xs font-bold text-[var(--foreground)]">120 online</span>
-            </motion.div>
           </motion.div>
         </div>
       </div>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 2.2, duration: 0.6 }} className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1">
-        <motion.div animate={{ y: [0, 7, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }} className="w-px h-10 bg-gradient-to-b from-[var(--border)] to-transparent" />
+      {/* scroll indicator */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={inView ? { opacity: 1 } : {}}
+        transition={{ delay: 1.4, duration: 0.6 }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2"
+      >
+        <motion.div
+          animate={{ y: [0, 8, 0] }}
+          transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+          className="w-px h-10 bg-gradient-to-b from-[var(--border-lt)] to-transparent mx-auto"
+        />
       </motion.div>
     </section>
   );
