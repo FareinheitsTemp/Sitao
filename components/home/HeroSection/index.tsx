@@ -4,21 +4,16 @@ import { motion, useInView, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { IconBrandDiscord, IconCopy, IconCheck, IconMap } from "@tabler/icons-react";
 import { useState, useRef, useEffect } from "react";
+import { useServerStatus } from "@/hooks/use-server-status";
 
 const SERVER_IP = "sitao.fun";
 
-const STATS = [
-  { value: "120+",  label: "онлайн зараз" },
-  { value: "5 000+",label: "гравців" },
-  { value: "4 роки", label: "безперервно" },
-];
-
 const TIMELINE = [
-  { year: "2022", label: "Запуск сервера",     detail: "Перший запуск SITAO.fun — 12 гравців online",                y: 78 },
-  { year: "2023", label: "Спільнота зростає",  detail: "Discord досяг 500 учасників, перший великий івент",       y: 52 },
-  { year: "2024", label: "Великий апдейт",      detail: "Нові плагіни, клейм-система та рейтинги гравців",         y: 30 },
-  { year: "2025", label: "5 000 гравців",       detail: "Milestone: 5к унікальних гравців за весь час",           y: 14 },
-  { year: "2026", label: "Зараз · 120+ online",  detail: "Сервер живе, розвивається і чекає на тебе",          y: 8  },
+  { year: "2022", label: "Запуск сервера",     detail: "Перший запуск SITAO.fun — 12 гравців online",          y: 78 },
+  { year: "2023", label: "Спільнота зростає",  detail: "Discord досяг 500 учасників, перший великий івент",     y: 52 },
+  { year: "2024", label: "Великий апдейт",     detail: "Нові плагіни, клейм-система та рейтинги гравців",       y: 30 },
+  { year: "2025", label: "5 000 гравців",      detail: "Milestone: 5к унікальних гравців за весь час",          y: 14 },
+  { year: "2026", label: "Зараз · online",     detail: "Сервер живе, розвивається і чекає на тебе",             y: 8  },
 ];
 
 const W = 480, H = 200, PX = 36, PY = 16;
@@ -79,14 +74,20 @@ const reveal = {
 };
 
 export default function HeroSection() {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied]     = useState(false);
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const sectionRef = useRef(null);
-  const inView = useInView(sectionRef, { once: true, margin: "-80px" });
-  const discord = process.env.NEXT_PUBLIC_DISCORD_URL ?? "#";
-  const dynmap  = process.env.NEXT_PUBLIC_DYNMAP_URL  ?? "#";
+  const inView     = useInView(sectionRef, { once: true, margin: "-80px" });
+  const discord    = process.env.NEXT_PUBLIC_DISCORD_URL ?? "#";
+  const dynmap     = process.env.NEXT_PUBLIC_DYNMAP_URL  ?? "#";
 
+  // ── Live server status ───────────────────────────────────────────────────
+  const { data: serverStatus } = useServerStatus({ interval: 30_000 });
+  const playersOnline = serverStatus?.players.online ?? null;
+  const isOnline      = serverStatus?.online ?? null;
+
+  // ── Chart animation ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!inView) return;
     let frame: number;
@@ -109,9 +110,18 @@ export default function HeroSection() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  // ── Stats row (live where available) ────────────────────────────────────
+  const STATS = [
+    {
+      value: playersOnline !== null ? `${playersOnline}` : "—",
+      label: "онлайн зараз",
+    },
+    { value: "5 000+", label: "гравців" },
+    { value: "4 роки", label: "безперервно" },
+  ];
+
   return (
     <section ref={sectionRef} className="relative min-h-screen flex items-center pt-16 overflow-hidden">
-      {/* single subtle glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] rounded-full bg-[#3d6bff] opacity-[0.04] blur-[160px] pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-8">
@@ -119,17 +129,33 @@ export default function HeroSection() {
 
           {/* LEFT */}
           <div className="flex flex-col justify-center">
-            {/* Eyebrow */}
+
+            {/* Eyebrow — live status */}
             <motion.div
               custom={0} variants={reveal} initial="hidden"
               animate={inView ? "visible" : "hidden"}
               className="mb-8 flex items-center gap-3"
             >
               <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3d6bff] opacity-60" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#3d6bff]" />
+                {isOnline !== false && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#3d6bff] opacity-60" />
+                )}
+                <span
+                  className="relative inline-flex rounded-full h-1.5 w-1.5"
+                  style={{ background: isOnline === false ? "#374151" : "#3d6bff" }}
+                />
               </span>
-              <span className="text-xs font-mono text-[var(--muted-lt)] tracking-widest uppercase">sitao.fun · онлайн</span>
+              <span className="text-xs font-mono text-[var(--muted-lt)] tracking-widest uppercase">
+                sitao.fun
+                {isOnline !== null && (
+                  <> · {isOnline
+                    ? playersOnline !== null && playersOnline > 0
+                      ? `${playersOnline} online`
+                      : "online"
+                    : "offline"}
+                  </>
+                )}
+              </span>
             </motion.div>
 
             {/* Heading */}
@@ -155,7 +181,7 @@ export default function HeroSection() {
               яка запам&apos;ятовується.
             </motion.p>
 
-            {/* CTA buttons */}
+            {/* CTA */}
             <motion.div
               custom={3} variants={reveal} initial="hidden"
               animate={inView ? "visible" : "hidden"}
@@ -189,10 +215,7 @@ export default function HeroSection() {
               animate={inView ? "visible" : "hidden"}
               className="space-y-4"
             >
-              <button
-                onClick={copyIp}
-                className="group flex items-center gap-3 w-fit"
-              >
+              <button onClick={copyIp} className="group flex items-center gap-3 w-fit">
                 <span className="text-xs font-mono text-[var(--muted)] uppercase tracking-widest">IP</span>
                 <div className="w-px h-3 bg-[var(--border)]" />
                 <span className="font-mono text-sm text-[var(--foreground-dim)] group-hover:text-[var(--foreground)] transition-colors">{SERVER_IP}</span>
@@ -202,7 +225,7 @@ export default function HeroSection() {
                 {copied && <span className="text-xs text-[#3d6bff] font-mono">Скопійовано</span>}
               </button>
 
-              {/* Stats row */}
+              {/* Stats — перший динамічний */}
               <div className="flex items-center gap-6">
                 {STATS.map(({ value, label }, i) => (
                   <div key={i} className="flex flex-col">
@@ -221,10 +244,8 @@ export default function HeroSection() {
             transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-center justify-center"
           >
-            <div
-              className="w-full max-w-lg rounded-2xl border border-[var(--border)] overflow-hidden"
-              style={{ background: "var(--surface)" }}
-            >
+            <div className="w-full max-w-lg rounded-2xl border border-[var(--border)] overflow-hidden" style={{ background: "var(--surface)" }}>
+
               {/* Chart header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
                 <div>
@@ -302,12 +323,12 @@ export default function HeroSection() {
                 </AnimatePresence>
               </div>
 
-              {/* Stats row */}
+              {/* Bottom stats — live online */}
               <div className="grid grid-cols-3 border-t border-[var(--border)]">
                 {[
-                  { v: "4 роки",  l: "онлайн" },
-                  { v: "5 000+", l: "гравців" },
-                  { v: "120+",   l: "зараз" },
+                  { v: "4 роки",                                          l: "онлайн" },
+                  { v: "5 000+",                                          l: "гравців" },
+                  { v: playersOnline !== null ? `${playersOnline}` : "—", l: "зараз" },
                 ].map(({ v, l }, i) => (
                   <div key={i} className={`flex flex-col items-center py-3.5 gap-0.5 ${i < 2 ? "border-r border-[var(--border)]" : ""}`}>
                     <span className="text-sm font-black">{v}</span>
