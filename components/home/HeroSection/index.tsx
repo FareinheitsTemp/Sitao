@@ -74,9 +74,9 @@ const reveal = {
 };
 
 export default function HeroSection() {
-  const [copied, setCopied]     = useState(false);
+  const [copied, setCopied]       = useState(false);
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress]   = useState(0);
   const sectionRef = useRef(null);
   const inView     = useInView(sectionRef, { once: true, margin: "-80px" });
   const discord    = process.env.NEXT_PUBLIC_DISCORD_URL ?? "#";
@@ -86,6 +86,15 @@ export default function HeroSection() {
   const { data: serverStatus } = useServerStatus({ interval: 30_000 });
   const playersOnline = serverStatus?.players.online ?? null;
   const isOnline      = serverStatus?.online ?? null;
+
+  // eyebrow label: поки грузиться — нічого, потім «N online» або «offline»
+  const eyebrowStatus = isOnline === null
+    ? null
+    : isOnline
+      ? playersOnline !== null && playersOnline > 0
+        ? `${playersOnline} online`
+        : 'online'
+      : 'offline';
 
   // ── Chart animation ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -110,14 +119,10 @@ export default function HeroSection() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  // ── Stats row (live where available) ────────────────────────────────────
   const STATS = [
-    {
-      value: playersOnline !== null ? `${playersOnline}` : "—",
-      label: "онлайн зараз",
-    },
-    { value: "5 000+", label: "гравців" },
-    { value: "4 роки", label: "безперервно" },
+    { value: playersOnline !== null ? `${playersOnline}` : '—', label: 'онлайн зараз' },
+    { value: '5 000+', label: 'гравців' },
+    { value: '4 роки', label: 'безперервно' },
   ];
 
   return (
@@ -130,7 +135,7 @@ export default function HeroSection() {
           {/* LEFT */}
           <div className="flex flex-col justify-center">
 
-            {/* Eyebrow — live status */}
+            {/* Eyebrow */}
             <motion.div
               custom={0} variants={reveal} initial="hidden"
               animate={inView ? "visible" : "hidden"}
@@ -142,19 +147,11 @@ export default function HeroSection() {
                 )}
                 <span
                   className="relative inline-flex rounded-full h-1.5 w-1.5"
-                  style={{ background: isOnline === false ? "#374151" : "#3d6bff" }}
+                  style={{ background: isOnline === false ? '#374151' : '#3d6bff' }}
                 />
               </span>
               <span className="text-xs font-mono text-[var(--muted-lt)] tracking-widest uppercase">
-                sitao.fun
-                {isOnline !== null && (
-                  <> · {isOnline
-                    ? playersOnline !== null && playersOnline > 0
-                      ? `${playersOnline} online`
-                      : "online"
-                    : "offline"}
-                  </>
-                )}
+                sitao.fun{eyebrowStatus ? ` · ${eyebrowStatus}` : ''}
               </span>
             </motion.div>
 
@@ -219,13 +216,12 @@ export default function HeroSection() {
                 <span className="text-xs font-mono text-[var(--muted)] uppercase tracking-widest">IP</span>
                 <div className="w-px h-3 bg-[var(--border)]" />
                 <span className="font-mono text-sm text-[var(--foreground-dim)] group-hover:text-[var(--foreground)] transition-colors">{SERVER_IP}</span>
-                <span className={`transition-colors duration-200 ${copied ? "text-[#3d6bff]" : "text-[var(--muted)] group-hover:text-[var(--muted-lt)]"}`}>
+                <span className={`transition-colors duration-200 ${copied ? 'text-[#3d6bff]' : 'text-[var(--muted)] group-hover:text-[var(--muted-lt)]'}`}>
                   {copied ? <IconCheck size={13} /> : <IconCopy size={13} />}
                 </span>
                 {copied && <span className="text-xs text-[#3d6bff] font-mono">Скопійовано</span>}
               </button>
 
-              {/* Stats — перший динамічний */}
               <div className="flex items-center gap-6">
                 {STATS.map(({ value, label }, i) => (
                   <div key={i} className="flex flex-col">
@@ -244,9 +240,8 @@ export default function HeroSection() {
             transition={{ duration: 0.9, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
             className="flex flex-col items-center justify-center"
           >
-            <div className="w-full max-w-lg rounded-2xl border border-[var(--border)] overflow-hidden" style={{ background: "var(--surface)" }}>
+            <div className="w-full max-w-lg rounded-2xl border border-[var(--border)] overflow-hidden" style={{ background: 'var(--surface)' }}>
 
-              {/* Chart header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--border)]">
                 <div>
                   <p className="text-[10px] font-mono uppercase tracking-widest text-[var(--muted)] mb-0.5">Активність</p>
@@ -259,9 +254,8 @@ export default function HeroSection() {
                 </div>
               </div>
 
-              {/* SVG */}
               <div className="px-4 pt-5 pb-3">
-                <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: "block", overflow: "visible" }}>
+                <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block', overflow: 'visible' }}>
                   <defs>
                     <linearGradient id="lg" x1="0" y1="0" x2="1" y2="0">
                       <stop offset="0%" stopColor="#1a3a99" />
@@ -280,18 +274,18 @@ export default function HeroSection() {
                   {TIMELINE.map((t, i) => {
                     const vis = progress >= (i / (TIMELINE.length - 1)) - 0.02;
                     return vis ? (
-                      <g key={i} style={{ cursor: "pointer" }} onMouseEnter={() => setActiveIdx(i)} onMouseLeave={() => setActiveIdx(null)}>
+                      <g key={i} style={{ cursor: 'pointer' }} onMouseEnter={() => setActiveIdx(i)} onMouseLeave={() => setActiveIdx(null)}>
                         <circle cx={pts[i].x} cy={pts[i].y} r={14} fill="transparent" />
                         <circle cx={pts[i].x} cy={pts[i].y} r={activeIdx === i ? 4 : 3}
-                          fill={activeIdx === i ? "#5b84ff" : "#3d6bff"}
-                          stroke={activeIdx === i ? "rgba(91,132,255,0.35)" : "rgba(61,107,255,0.2)"}
+                          fill={activeIdx === i ? '#5b84ff' : '#3d6bff'}
+                          stroke={activeIdx === i ? 'rgba(91,132,255,0.35)' : 'rgba(61,107,255,0.2)'}
                           strokeWidth={activeIdx === i ? 6 : 4}
-                          style={{ transition: "all 0.15s" }}
+                          style={{ transition: 'all 0.15s' }}
                         />
                         <text x={pts[i].x} y={H-2} textAnchor="middle" fontSize="10"
-                          fill={activeIdx === i ? "#5b84ff" : "rgba(61,107,255,0.5)"}
+                          fill={activeIdx === i ? '#5b84ff' : 'rgba(61,107,255,0.5)'}
                           fontFamily="var(--font-geist-mono, monospace)" fontWeight="500"
-                          style={{ transition: "fill 0.15s" }}
+                          style={{ transition: 'fill 0.15s' }}
                         >{t.year}</text>
                       </g>
                     ) : null;
@@ -299,7 +293,6 @@ export default function HeroSection() {
                 </svg>
               </div>
 
-              {/* Tooltip */}
               <div className="px-5 pb-4 min-h-[52px]">
                 <AnimatePresence mode="wait">
                   {activeIdx !== null ? (
@@ -323,14 +316,13 @@ export default function HeroSection() {
                 </AnimatePresence>
               </div>
 
-              {/* Bottom stats — live online */}
               <div className="grid grid-cols-3 border-t border-[var(--border)]">
                 {[
-                  { v: "4 роки",                                          l: "онлайн" },
-                  { v: "5 000+",                                          l: "гравців" },
-                  { v: playersOnline !== null ? `${playersOnline}` : "—", l: "зараз" },
+                  { v: '4 роки',                                           l: 'онлайн' },
+                  { v: '5 000+',                                           l: 'гравців' },
+                  { v: playersOnline !== null ? `${playersOnline}` : '—',  l: 'зараз' },
                 ].map(({ v, l }, i) => (
-                  <div key={i} className={`flex flex-col items-center py-3.5 gap-0.5 ${i < 2 ? "border-r border-[var(--border)]" : ""}`}>
+                  <div key={i} className={`flex flex-col items-center py-3.5 gap-0.5 ${i < 2 ? 'border-r border-[var(--border)]' : ''}`}>
                     <span className="text-sm font-black">{v}</span>
                     <span className="text-[9px] font-mono text-[var(--muted)] uppercase tracking-widest">{l}</span>
                   </div>
@@ -341,7 +333,6 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* scroll indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={inView ? { opacity: 1 } : {}}
@@ -350,7 +341,7 @@ export default function HeroSection() {
       >
         <motion.div
           animate={{ y: [0, 8, 0] }}
-          transition={{ repeat: Infinity, duration: 2.2, ease: "easeInOut" }}
+          transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
           className="w-px h-10 bg-gradient-to-b from-[var(--border-lt)] to-transparent mx-auto"
         />
       </motion.div>
